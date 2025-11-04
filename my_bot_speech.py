@@ -30,7 +30,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 
 # Основная функция эхо - обрабатывает текстовые сообщения
-def echo(update: Update, context: CallbackContext) -> None:
+def echo(update: Update, context: CallbackContext):
     """
     Обрабатывает ЛЮБЫЕ текстовые сообщения от пользователя
     и отправляет их обратно (эхо)
