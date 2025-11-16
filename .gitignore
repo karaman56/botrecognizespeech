@@ -142,3 +142,4 @@ dmypy.json
 cython_debug/
 
 .parcel-cache/
+.google-cloud-cli-linux-x86_64.tar.gz
