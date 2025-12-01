@@ -2,6 +2,13 @@
 google-cloud-cli-linux-x86_64.tar.gz
 google-cloud-sdk/
 
+google-cloud-sdk/
+
+
+/home/monster/git/botrecognizespeech/google-cloud-sdk/
+
+botrecognizespeech/google-cloud-sdk/
+
 # Python
 __pycache__/
 *.pyc
@@ -30,3 +37,13 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+/home/monster/git/botrecognizespeech/google-cloud-sdk/
+
+
+
+# SDKs and development tools
+google-cloud-sdk/
+venv/
+env/
+*.sdk/
+sdk/
