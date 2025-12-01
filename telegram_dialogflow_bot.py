@@ -2,11 +2,15 @@ import os
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from google.cloud import dialogflow_v2beta1 as dialogflow
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-BOT_TOKEN = "5435821594:AAGa7Cg-Vw4JAL4-ztTcJMfQpoA-8yLoyZg"
-DIALOGFLOW_PROJECT_ID = "mybot-lhba"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/monster/.config/gcloud/application_default_credentials.json"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID")
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
 
 
 logging.basicConfig(level=logging.INFO)

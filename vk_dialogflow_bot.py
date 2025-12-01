@@ -1,14 +1,20 @@
 import vk_api
+import os
+import logging
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from google.cloud import dialogflow_v2beta1 as dialogflow
-import os
-import logging
+from dotenv import load_dotenv
 
 
-VK_TOKEN = "vk1.a.CV3AdOJWZNCAwlZ8SEMa_0Kc8dU8GxeXLM95bMmMXgKDSMZ_YgX51pFf5ORh3G_40CT84qO6I52mvGDT45YJbaV8qhGN7HwG-EyAWAk7-9Paybq7r9CJtBnzWM9r8w5-nPeyFLxZ-lnATMfjPq3_SkhA6_0kXEPYHD7e5glsfcJ846eaOnVWnZvbWxt8UUN1wzmXAbI51UBeOprphT4SfA"
-DIALOGFLOW_PROJECT_ID = "mybot-lhba"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/monster/.config/gcloud/application_default_credentials.json"
+load_dotenv()
+
+
+VK_TOKEN = os.getenv("VK_TOKEN")
+DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID")
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
