@@ -153,37 +153,33 @@ sudo supervisorctl start vk-bot
 
 - Зависимости
 `python-telegram-bot` - для работы с Telegram API
-
-- vk-api - для работы с VK API
-
+`vk-api - для работы с VK API`
 `google-cloud-dialogflow` - для интеграции с DialogFlow
-
 `python-dotenv` - для управления переменными окружения
-
 `requests` - для HTTP запросов
 
 #### Мониторинг ошибок
-Система отправляет уведомления в Telegram при:
-Ошибках DialogFlow API
-Ошибках отправки сообщений
-Критических ошибках запуска ботов
-Успешном запуске ботов
-Логирование
-Боты записывают логи в:
-Консоль (при локальном запуске)
-Файлы логов (при работе через Supervisor)
-Telegram (критические ошибки)
+- Система отправляет уведомления в Telegram при:
+- Ошибках DialogFlow API
+- Ошибках отправки сообщений
+- Критических ошибках запуска ботов
+- Успешном запуске ботов
+- Логирование
+#### Боты записывают логи в:
+- Консоль (при локальном запуске)
+- Файлы логов (при работе через Supervisor)
+- Telegram (критические ошибки)
 
 #### 🐛 Устранение неполадок
-Распространенные проблемы
-"DialogFlow error: 7 PERMISSION_DENIED"
-Проверьте GOOGLE_APPLICATION_CREDENTIALS
-Убедитесь что DialogFlow API включен
-"Telegram bot error: Conflict"
-Убедитесь что запущен только один экземпляр бота
-"VK token invalid"
-Обновите токен VK группы
-Проверьте права доступа
+- Распространенные проблемы
+- "DialogFlow error: 7 PERMISSION_DENIED"
+- Проверьте GOOGLE_APPLICATION_CREDENTIALS
+- Убедитесь что DialogFlow API включен
+- "Telegram bot error: Conflict"
+- Убедитесь что запущен только один экземпляр бота
+- "VK token invalid"
+- Обновите токен VK группы
+- Проверьте права доступа
 
 #### Просмотр логов
 ```bash
@@ -194,4 +190,4 @@ tail -f /var/log/telegram-bot.out.log
 #### VK 
 ```tail -f /var/log/vk-bot.out.log```
 
-## спасибо за внимание
+## спасибо за внимание!
