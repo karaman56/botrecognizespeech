@@ -1,6 +1,6 @@
 import os
 import logging
-import requests  # ДОБАВИЛ: для отправки ошибок в Telegram
+import requests
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from google.cloud import dialogflow_v2beta1 as dialogflow
 from dotenv import load_dotenv

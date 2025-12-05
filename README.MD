@@ -190,4 +190,9 @@ tail -f /var/log/telegram-bot.out.log
 #### VK 
 ```tail -f /var/log/vk-bot.out.log```
 
+
+- [telegram_dialogflow_bot.py](https://t.me/First_napominalka_bot)
+- [vk_dialogflow_bot.py](https://vk.com/club234091612)
+- [Бот куда приходят ошибки](https://t.me/shet5683_bot)
+
 ## спасибо за внимание!
