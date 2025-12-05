@@ -7,19 +7,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ДОБАВИЛ: токен для бота-логгера
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-BOT_TOKEN_TG = os.getenv("BOT_TOKEN_TG")  # Токен бота для логов
-CHAT_ID = os.getenv("CHAT_ID")  # ID куда отправлять логи
+BOT_TOKEN_TG = os.getenv("BOT_TOKEN_TG")
+CHAT_ID = os.getenv("CHAT_ID")
 
 
-# ДОБАВИЛ: простая функция отправки ошибок в Telegram
+
 def send_to_telegram(message):
     """Отправляет сообщение в Telegram бот"""
     if not BOT_TOKEN_TG or not CHAT_ID:
-        return  # Если нет токена или chat_id - не отправляем
+        return
 
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN_TG}/sendMessage"
@@ -30,12 +30,10 @@ def send_to_telegram(message):
         }
         requests.post(url, data=data, timeout=5)
     except:
-        pass  # Игнорируем ошибки отправки
-
+        pass
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 def get_dialogflow_response(project_id, session_id, message, language_code='ru'):
     """Получаем ответ от DialogFlow"""
@@ -59,8 +57,6 @@ def get_dialogflow_response(project_id, session_id, message, language_code='ru')
     except Exception as e:
         error_msg = f"DialogFlow error: {e}"
         logger.error(error_msg)
-
-        # ДОБАВИЛ: отправляем ошибку DialogFlow в Telegram
         send_to_telegram(f"⚠️ <b>Telegram Bot - DialogFlow Error</b>\n\n{error_msg}")
 
         return None
@@ -120,7 +116,6 @@ def main():
         updater = Updater(BOT_TOKEN, use_context=True)
         dp = updater.dispatcher
 
-        # ДОБАВИЛ: добавляем обработчик ошибок
         dp.add_error_handler(error_handler)
 
         dp.add_handler(CommandHandler("start", start))
@@ -128,7 +123,6 @@ def main():
         dp.add_handler(MessageHandler(Filters.text, handle_message))
 
         logger.info("Бот запущен...")
-
 
         send_to_telegram("✅ <b>Telegram Bot запущен</b>")
 
