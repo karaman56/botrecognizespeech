@@ -47,3 +47,4 @@ venv/
 env/
 *.sdk/
 sdk/
+update.txt
