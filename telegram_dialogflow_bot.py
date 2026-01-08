@@ -1,65 +1,17 @@
 import os
 import logging
-import requests
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from google.cloud import dialogflow_v2beta1 as dialogflow
+from telegram import Bot
 from dotenv import load_dotenv
 
-load_dotenv()
+from common_utils import get_dialogflow_response
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-DIALOGFLOW_PROJECT_ID = os.getenv("DIALOGFLOW_PROJECT_ID")
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-BOT_TOKEN_TG = os.getenv("BOT_TOKEN_TG")
-CHAT_ID = os.getenv("CHAT_ID")
-
-
-
-def send_to_telegram(message):
-    """Отправляет сообщение в Telegram бот"""
-    if not BOT_TOKEN_TG or not CHAT_ID:
-        return
-
-    try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN_TG}/sendMessage"
-        data = {
-            'chat_id': CHAT_ID,
-            'text': message,
-            'parse_mode': 'HTML'
-        }
-        requests.post(url, data=data, timeout=5)
-    except:
-        pass
-
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-def get_dialogflow_response(project_id, session_id, message, language_code='ru'):
-    """Получаем ответ от DialogFlow"""
-    try:
-        session_client = dialogflow.SessionsClient()
-        session = session_client.session_path(project_id, session_id)
-
-        text_input = dialogflow.TextInput(text=message, language_code=language_code)
-        query_input = dialogflow.QueryInput(text=text_input)
-
-        response = session_client.detect_intent(
-            request={"session": session, "query_input": query_input}
-        )
-
-        logger.info(f"DialogFlow успешно ответил:")
-        logger.info(f"  Запрос: {message}")
-        logger.info(f"  Ответ: {response.query_result.fulfillment_text}")
-
-        return response
-
-    except Exception as e:
-        error_msg = f"DialogFlow error: {e}"
-        logger.error(error_msg)
-        send_to_telegram(f"⚠️ <b>Telegram Bot - DialogFlow Error</b>\n\n{error_msg}")
-
-        return None
 
 
 def start(update, context):
@@ -80,16 +32,18 @@ def help_command(update, context):
     )
 
 
-def handle_message(update, context):
+def handle_message(update, context, dialogflow_project_id):
     """Обработчик всех текстовых сообщений"""
     user_message = update.message.text
     user_id = str(update.message.from_user.id)
 
-    logger.info(f"Message from user {user_id}: {user_message}")
+    session_id = f"tg-{user_id}"
+
+    logger.info(f"Message from Telegram user {user_id} (session: {session_id}): {user_message}")
 
     response = get_dialogflow_response(
-        project_id=DIALOGFLOW_PROJECT_ID,
-        session_id=user_id,
+        project_id=dialogflow_project_id,
+        session_id=session_id,
         message=user_message,
         language_code='en'
     )
@@ -102,36 +56,59 @@ def handle_message(update, context):
     update.message.reply_text(bot_response)
 
 
-def error_handler(update, context):
+def error_handler(update, context, chat_id):
     """Обработчик ошибок бота"""
     error_msg = f"Telegram bot error: {context.error}"
     logger.error(error_msg)
 
-    send_to_telegram(f"🚨 <b>Telegram Bot Error</b>\n\n{error_msg}")
+    context.bot.send_message(
+        chat_id=chat_id,
+        text=f"🚨 <b>Telegram Bot Error</b>\n\n{error_msg}",
+        parse_mode='HTML'
+    )
 
 
 def main():
     """Запуск бота"""
+    load_dotenv()
+
+    bot_token = os.getenv("BOT_TOKEN")
+    dialogflow_project_id = os.getenv("DIALOGFLOW_PROJECT_ID")
+    chat_id = os.getenv("CHAT_ID")
+
     try:
-        updater = Updater(BOT_TOKEN, use_context=True)
+        updater = Updater(bot_token, use_context=True)
         dp = updater.dispatcher
 
-        dp.add_error_handler(error_handler)
+        dp.add_error_handler(lambda update, context: error_handler(update, context, chat_id))
 
         dp.add_handler(CommandHandler("start", start))
         dp.add_handler(CommandHandler("help", help_command))
-        dp.add_handler(MessageHandler(Filters.text, handle_message))
+
+        dp.add_handler(MessageHandler(Filters.text,
+                                      lambda update, context: handle_message(update, context, dialogflow_project_id)))
 
         logger.info("Бот запущен...")
 
-        send_to_telegram("✅ <b>Telegram Bot запущен</b>")
+        updater.bot.send_message(
+            chat_id=chat_id,
+            text="✅ <b>Telegram Bot запущен</b>",
+            parse_mode='HTML'
+        )
 
         updater.start_polling()
         updater.idle()
 
     except Exception as e:
         error_msg = f"Critical error starting bot: {e}"
-        send_to_telegram(f"🔥 <b>Telegram Bot Critical Error</b>\n\n{error_msg}")
+        logger.error(error_msg)
+
+        bot = Bot(token=bot_token)
+        bot.send_message(
+            chat_id=chat_id,
+            text=f"🔥 <b>Telegram Bot Critical Error</b>\n\n{error_msg}",
+            parse_mode='HTML'
+        )
         raise
 
 
