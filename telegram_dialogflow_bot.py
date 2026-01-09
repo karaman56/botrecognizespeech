@@ -6,11 +6,6 @@ from dotenv import load_dotenv
 
 from common_utils import get_dialogflow_response
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
 logger = logging.getLogger(__name__)
 
 
@@ -36,7 +31,6 @@ def handle_message(update, context, dialogflow_project_id):
     """Обработчик всех текстовых сообщений"""
     user_message = update.message.text
     user_id = str(update.message.from_user.id)
-
     session_id = f"tg-{user_id}"
 
     logger.info(f"Message from Telegram user {user_id} (session: {session_id}): {user_message}")
@@ -56,61 +50,69 @@ def handle_message(update, context, dialogflow_project_id):
     update.message.reply_text(bot_response)
 
 
-def error_handler(update, context, chat_id):
+def error_handler(update, context):
     """Обработчик ошибок бота"""
-    error_msg = f"Telegram bot error: {context.error}"
-    logger.error(error_msg)
-
-    context.bot.send_message(
-        chat_id=chat_id,
-        text=f"🚨 <b>Telegram Bot Error</b>\n\n{error_msg}",
-        parse_mode='HTML'
-    )
+    logger.exception("Telegram bot error:")
 
 
 def main():
     """Запуск бота"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
     load_dotenv()
 
-    bot_token = os.getenv("BOT_TOKEN")
-    dialogflow_project_id = os.getenv("DIALOGFLOW_PROJECT_ID")
-    chat_id = os.getenv("CHAT_ID")
+    telegram_bot_token = os.environ["BOT_TOKEN"]
+    dialogflow_project_id = os.environ["DIALOGFLOW_PROJECT_ID"]
+    chat_id = os.environ["CHAT_ID"]
 
-    try:
-        updater = Updater(bot_token, use_context=True)
-        dp = updater.dispatcher
+    updater = Updater(telegram_bot_token , use_context=True)
+    dp = updater.dispatcher
+    dp.add_error_handler(error_handler)
 
-        dp.add_error_handler(lambda update, context: error_handler(update, context, chat_id))
+    def safe_handle_message(update, context):
+        try:
+            handle_message(update, context, dialogflow_project_id)
+        except Exception:
+            logger.exception("Ошибка обработки сообщения Telegram:")
+            update.message.reply_text("Sorry, an error occurred while processing your request.")
 
-        dp.add_handler(CommandHandler("start", start))
-        dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(MessageHandler(Filters.text, safe_handle_message))
 
-        dp.add_handler(MessageHandler(Filters.text,
-                                      lambda update, context: handle_message(update, context, dialogflow_project_id)))
+    logger.info("Бот запущен...")
 
-        logger.info("Бот запущен...")
+    Bot(token=telegram_bot_token ).send_message(
+        chat_id=chat_id,
+        text="✅ <b>Telegram Bot запущен</b>",
+        parse_mode='HTML'
+    )
 
-        updater.bot.send_message(
-            chat_id=chat_id,
-            text="✅ <b>Telegram Bot запущен</b>",
-            parse_mode='HTML'
-        )
-
-        updater.start_polling()
-        updater.idle()
-
-    except Exception as e:
-        error_msg = f"Critical error starting bot: {e}"
-        logger.error(error_msg)
-
-        bot = Bot(token=bot_token)
-        bot.send_message(
-            chat_id=chat_id,
-            text=f"🔥 <b>Telegram Bot Critical Error</b>\n\n{error_msg}",
-            parse_mode='HTML'
-        )
-        raise
+    updater.start_polling()
+    updater.idle()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyError as e:
+        logger.error(f"Отсутствует обязательная переменная окружения: {e}")
+        raise
+    except Exception:
+        logger.exception("Critical error in Telegram bot:")
+        try:
+            load_dotenv()
+            telegram_bot_token  = os.getenv["BOT_TOKEN"]
+            chat_id = os.getenv["CHAT_ID"]
+            if telegram_bot_token  and chat_id:
+                Bot(token=telegram_bot_token ).send_message(
+                    chat_id=chat_id,
+                    text="🔥 <b>Telegram Bot Critical Error</b>\n\nПроизошла критическая ошибка",
+                    parse_mode='HTML'
+                )
+        except Exception:
+            logger.exception("Не удалось отправить сообщение об ошибке:")
+        raise
